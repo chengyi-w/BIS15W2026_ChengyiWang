@@ -84,7 +84,7 @@ Weight <- c(2.9, 4.0, 3.1)
 
 Since we work in the tidyverse, we use the `tibble()` function to create a data frame. A tibble is a modern take on data frames. Tibbles are data frames, but they tweak some older behaviors to make life a little easier.
 ```{r}
-
+tibble(Sex, Length, Weight)
 ```
 
 Notice that not only are the data neat and clean looking, there is also information provided about the class of data. `dbl` means that the value is a type of numeric [double precision floating point](http://uc-r.github.io/integer_double/). 
