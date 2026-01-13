@@ -84,7 +84,7 @@ Weight <- c(2.9, 4.0, 3.1)
 
 Since we work in the tidyverse, we use `tibble()` to create a data frame.  
 ```{r}
-
+hbirds <- tibble(Sex, Length, Weight)
 ```
 
 Notice that not only are the data neat and clean looking, there is also information provided about the class of data. `dbl` means that the value is a type of numeric [double precision floating point](http://uc-r.github.io/integer_double/).  
@@ -94,11 +94,13 @@ Notice that not only are the data neat and clean looking, there is also informat
 
 What are the column names of our data frame? Notice that R defaulted to using the names of our vectors, but we could name them something else when creating the data frame, or rename them later.  
 ```{r}
-
+names(hbirds)
 ```
 
 What are the dimensions of the `hbirds` data frame? The `dim()` and `str()` commands provide this information.   
 ```{r}
+dim(hbirds)
+str(hbirds)
 
 ```
 
@@ -108,7 +110,7 @@ What are the dimensions of the `hbirds` data frame? The `dim()` and `str()` comm
 
 Let's use lowercase names when we create the data frame. We just changed to lowercase here, but we could use any names we wish.  
 ```{r}
-
+hbirds <- tibble(sex = Sex, length = Length, weight = Weight)
 ```
 
 ## Accessing Data Frame Columns and Rows 
@@ -116,18 +118,18 @@ The same methods of selecting elements in vectors and data matrices apply to dat
 
 The first row.  
 ```{r}
-
+hbirds[1,]
 ```
 
 The third column.  
 ```{r}
-
+hbirds[,3]
 ```
 
 ## Calculations
 We can use the `$` to access a column (variable) in a data frame. Here we calculate the mean length of the hummingbirds.  
 ```{r}
-
+mean(hbirds$length)
 ```
 
 ## Writing Data to File
