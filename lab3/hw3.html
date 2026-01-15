@@ -9,9 +9,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Your Name Here" />
+<meta name="author" content="Chengyi Wang" />
 
-<meta name="date" content="2026-01-12" />
+<meta name="date" content="2026-01-13" />
 
 <title>Homework 3</title>
 
@@ -375,8 +375,8 @@ display: none;
 
 
 <h1 class="title toc-ignore">Homework 3</h1>
-<h4 class="author">Your Name Here</h4>
-<h4 class="date">2026-01-12</h4>
+<h4 class="author">Chengyi Wang</h4>
+<h4 class="date">2026-01-13</h4>
 
 </div>
 
@@ -397,7 +397,7 @@ code chunks to run.</p>
 ## ✔ forcats   1.0.1     ✔ stringr   1.6.0
 ## ✔ ggplot2   4.0.1     ✔ tibble    3.3.0
 ## ✔ lubridate 1.9.4     ✔ tidyr     1.3.2
-## ✔ purrr     1.2.1     
+## ✔ purrr     1.2.0     
 ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ## ✖ dplyr::filter() masks stats::filter()
 ## ✖ dplyr::lag()    masks stats::lag()
@@ -407,30 +407,69 @@ online research.</p>
 <p><strong>1. Make three new vectors that show the name, height in feet,
 and height in meters of the five tallest mountains in the
 world.</strong></p>
+<pre class="r"><code>name = c(&quot;Mount Everest&quot;, &quot;K2&quot;, &quot;Kangchenjunga&quot;, &quot;Lhotse&quot;, &quot;Makalu&quot;)
+height_ft = c(29032, 28251, 28169, 27940, 27838)
+height_m = c(8849, 8611, 8586, 8516, 8485)</code></pre>
 <p><strong>2. Combine these vectors into a data frame called
 <code>mountains</code>.</strong></p>
+<pre class="r"><code>mountains &lt;- tibble(name, height_ft, height_m)</code></pre>
 <p><strong>3. What is the mean height of the mountains in
 feet?</strong></p>
+<pre class="r"><code>mean(mountains$height_ft)</code></pre>
+<pre><code>## [1] 28246</code></pre>
 <p><strong>4. When were each of these mountains first climbed (i.e. in
 what year)? Make a new vector <code>first_climbed</code> and add it to
 the <code>mountains</code> data frame.</strong></p>
+<pre class="r"><code>first_climbed &lt;- c(1953,1954,1955,1956,1955)</code></pre>
+<pre class="r"><code>mountains[&quot;first_climbed&quot;] &lt;- first_climbed</code></pre>
 <p><strong>5. How many times have each of these mountains been climbed?
 Make a new vector <code>summits</code> and add it to the
 <code>mountains</code> data frame.</strong></p>
+<pre class="r"><code>summits &lt;- c(12800, 800, 180, 900, 499)
+mountains[&quot;summits&quot;] &lt;- summits</code></pre>
 <p><strong>6. Which mountain has the highest number of fatalities? Make
 a new vector <code>fatalities</code> and add it to the
 <code>mountains</code> data frame.</strong></p>
+<pre class="r"><code>fatalities &lt;- c(344, 96, 52, 22, 50)
+mountains[&quot;fatalities&quot;] &lt;- fatalities</code></pre>
 <p><strong>7. What is the fatality rate (i.e., fatalities divided by
 summits) for each mountain? Create a new vector
 <code>fatality_rate</code> and add it to the <code>mountains</code> data
 frame.</strong></p>
+<pre class="r"><code>fatality_rate &lt;- fatalities / summits
+mountains[&quot;fatality_rate&quot;] &lt;- fatality_rate</code></pre>
 <p><strong>8. Write your data frame to a .csv file called
 <code>mountains_data</code>.</strong></p>
+<pre class="r"><code>write_csv(mountains,&quot;mountains_data.csv&quot;)</code></pre>
 <p><strong>9. Clear your environment panel by clicking on the broom
 icon. Then read in your <code>mountains_data.csv</code> file to a new
 object called <code>mountains</code>.</strong></p>
+<pre class="r"><code>mountains = read_csv(&quot;mountains_data.csv&quot;)</code></pre>
+<pre><code>## Rows: 5 Columns: 7
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (1): name
+## dbl (6): height_ft, height_m, first_climbed, summits, fatalities, fatality_rate
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <p><strong>10. Use a summary function of your choice to show the
 structure of your <code>mountains</code> data frame.</strong></p>
+<pre class="r"><code>summary(mountains)</code></pre>
+<pre><code>##      name             height_ft        height_m    first_climbed 
+##  Length:5           Min.   :27838   Min.   :8485   Min.   :1953  
+##  Class :character   1st Qu.:27940   1st Qu.:8516   1st Qu.:1954  
+##  Mode  :character   Median :28169   Median :8586   Median :1955  
+##                     Mean   :28246   Mean   :8609   Mean   :1955  
+##                     3rd Qu.:28251   3rd Qu.:8611   3rd Qu.:1955  
+##                     Max.   :29032   Max.   :8849   Max.   :1956  
+##     summits        fatalities    fatality_rate    
+##  Min.   :  180   Min.   : 22.0   Min.   :0.02444  
+##  1st Qu.:  499   1st Qu.: 50.0   1st Qu.:0.02687  
+##  Median :  800   Median : 52.0   Median :0.10020  
+##  Mean   : 3036   Mean   :112.8   Mean   :0.11208  
+##  3rd Qu.:  900   3rd Qu.: 96.0   3rd Qu.:0.12000  
+##  Max.   :12800   Max.   :344.0   Max.   :0.28889</code></pre>
 </div>
 <div id="knit-and-upload" class="section level2">
 <h2>Knit and Upload</h2>
