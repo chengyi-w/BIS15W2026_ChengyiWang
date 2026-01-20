@@ -59,6 +59,8 @@ ggplot(
 ```
 
 **7. Is there a relationship between body weight and total sleep time? Add appropriate labels and a title to your plot.**
+
+There is relationship, but not very strong. 
 ```{r}
 ggplot(
   data = msleep, mappin = aes(x=bodywt,y=sleep_total)
@@ -70,6 +72,7 @@ ggplot(
 ```
 
 **8. Which vore type tends to sleep the most? Build a plot to support your answer.**
+
 Insectivore tends to sleep the most. 
 ```{r}
 ggplot(
@@ -80,6 +83,7 @@ ggplot(
 ```
 
 **9. Is there a relationship between brain weight and body weight? Build a plot to support your answer.**
+
 Yes, brain weight and body weight are positively correlated. 
 ```{r}
 ggplot(
@@ -93,6 +97,7 @@ ggplot(
 ```
 
 **10. Build one plot of your choice that provides additional insight into the msleep dataset. Be sure to include appropriate labels and a title.**
+
 Total sleep time and REM sleep time are correlated. 
 ```{r}
 ggplot(
