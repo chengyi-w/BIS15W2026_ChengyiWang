@@ -38,13 +38,16 @@ glimpse(homerange)
 **3. Which animal groups are represented in the data? Make a plot that shows the number in each class.**
 ```{r}
 ggplot(homerange, mapping=aes(x=taxon))+
-  geom_bar()
+  geom_bar()+
+  labs(x="Animal Groups",title="Number of Animals in Each Group")
+
 ```
 
 **4. Are there more carnivores or herbivores represented in the data? Make a plot that shows the number in each trophic guild.**
 ```{r}
 ggplot(homerange, mapping=aes(x=trophic.guild ))+
-  geom_bar()
+  geom_bar()+
+  labs(x="Trophic Guild",title="Number in Each Trophic Guild")
 ```
 
 **5. Which herbivorous mammals have homeranges greater than 1,000,000 m²? Show only the common name, order, mean homerange size, and mean body mass. Arrange the data in descending order by homerange size and show only the top 10 species.**
@@ -81,7 +84,8 @@ homerange %>%
 homerange %>% 
   ggplot(mapping=aes(x=log10.mass,y=log10.hra))+
     geom_point()+
-    geom_smooth(method=lm)
+    geom_smooth(method=lm)+
+    labs(x="Logarithmic Scale Body Weight",y="Logarithmic Scale Homerange Size", title="Body Mass vs Homerange Size")
 ```
 
 **9. Use filter to extract the data for only birds and mammals. Then make a plot that compares the homerange sizes of these two groups. Be sure to include appropriate labels and a title.**
@@ -89,12 +93,19 @@ homerange %>%
 homerange %>% 
   filter(class=="aves" | class=="mammalia") %>% 
   ggplot(mapping = aes(x=class,y=log10.hra))+
-  geom_boxplot()
+  geom_boxplot()+
+  labs(y="Logarithmic Scale Homerange Size",title="Homerange Sizes of Birds and Mammals")
+  
 ```
 
 **10. Do one additional exploratory analysis of your choice. Before writing the code, write the question you are trying to answer. The question should be biologically meaningful and appropriate for the data. It must include at least one `filter()`, `select()`, and `arrange()`.**
-```{r}
 
+Question: Among birds, which species have the smallest mean home range areas?
+```{r}
+homerange %>%
+  filter(class == "aves", !is.na(mean.hra.m2)) %>%
+  select(common.name, genus, species, mean.hra.m2) %>%
+  arrange(mean.hra.m2)
 ```
 
 ## Knit and Upload
