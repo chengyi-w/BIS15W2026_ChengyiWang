@@ -1,0 +1,246 @@
+---
+title: "Midterm Note"
+output: html_document
+date: "2026-01-29"
+---
+
+# Core tidyverse setup (use a real dataset: palmerpenguins::penguins)
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+
+penguins %>% glimpse()
+```
+
+# Select columns (dplyr::select)
+
+```{r}
+penguins %>% select(species, island, bill_length_mm, body_mass_g)
+penguins %>% select(starts_with("bill"))
+penguins %>% select(where(is.numeric))
+```
+
+# Rename and relocate columns (dplyr::rename, relocate)
+
+```{r}
+penguins %>%
+  rename(mass_g = body_mass_g) %>%
+  relocate(species, island, .before = 1)
+```
+
+# Filter rows (dplyr::filter)
+
+```{r}
+penguins %>%
+  filter(species == "Adelie", island %in% c("Torgersen", "Biscoe"))
+
+penguins %>% filter(between(bill_length_mm, 35, 45))
+```
+
+# Arrange rows (dplyr::arrange)
+
+```{r}
+penguins %>% arrange(desc(body_mass_g), bill_length_mm)
+```
+
+# Mutate (new columns) (dplyr::mutate)
+
+```{r}
+penguins %>%
+  mutate(
+    bill_ratio = bill_length_mm / bill_depth_mm,
+    heavy = body_mass_g >= 4500
+  ) %>%
+  select(species, bill_ratio, heavy)
+```
+
+# Conditional logic (if_else, case_when)
+
+```{r}
+penguins %>%
+  mutate(
+    mass_class = case_when(
+      body_mass_g >= 5000 ~ "large",
+      body_mass_g >= 4000 ~ "medium",
+      TRUE ~ "small"
+    ),
+    has_complete_bill = if_else(is.na(bill_length_mm) | is.na(bill_depth_mm), "no", "yes")
+  ) %>%
+  count(mass_class, has_complete_bill)
+```
+
+# Distinct / unique values (dplyr::distinct)
+
+```{r}
+penguins %>% distinct(species)
+penguins %>% distinct(species, island)
+```
+
+# Count frequencies (dplyr::count)
+
+```{r}
+penguins %>% count(species, sort = TRUE)
+penguins %>% count(species, island, sort = TRUE)
+```
+
+# Summarise (overall) (dplyr::summarise)
+
+```{r}
+penguins %>%
+  summarise(
+    n = n(),
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    sd_mass = sd(body_mass_g, na.rm = TRUE)
+  )
+```
+
+# Grouped summaries (group_by + summarise)
+
+```{r}
+penguins %>%
+  group_by(species, sex) %>%
+  summarise(
+    n = n(),
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    mean_bill = mean(bill_length_mm, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+# Summarise across many columns (dplyr::across)
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  summarise(
+    across(where(is.numeric), ~ mean(.x, na.rm = TRUE)),
+    .groups = "drop"
+  )
+```
+
+# Grouped mutate (within-group centered / z-scores)
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  mutate(
+    mass_centered = body_mass_g - mean(body_mass_g, na.rm = TRUE),
+    mass_z = (body_mass_g - mean(body_mass_g, na.rm = TRUE)) / sd(body_mass_g, na.rm = TRUE)
+  ) %>%
+  ungroup() %>%
+  select(species, body_mass_g, mass_centered, mass_z)
+```
+
+# Add group counts (add_count)
+
+```{r}
+penguins %>% add_count(species) %>% select(species, island, n)
+```
+
+# Drop missing values vs replace missing values (tidyr::drop_na, replace_na)
+
+```{r}
+penguins_complete <- penguins %>% drop_na(bill_length_mm, bill_depth_mm, body_mass_g)
+
+penguins %>%
+  mutate(body_mass_g = replace_na(body_mass_g, 0)) %>%
+  summarise(min_mass = min(body_mass_g))
+```
+
+# Reshape long <-> wide (tidyr::pivot_longer, pivot_wider)
+
+```{r}
+penguins %>%
+  select(species, island, bill_length_mm, bill_depth_mm) %>%
+  pivot_longer(cols = starts_with("bill"), names_to = "measure", values_to = "mm") %>%
+  group_by(species, measure) %>%
+  summarise(mean_mm = mean(mm, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = measure, values_from = mean_mm)
+```
+
+# Separate / unite (tidyr::separate, unite)
+
+```{r}
+penguins %>%
+  unite("species_island", species, island, sep = "_") %>%
+  separate(species_island, into = c("species", "island"), sep = "_")
+```
+
+# Joins (left_join / inner_join / anti_join)
+
+```{r}
+avg_mass <- penguins %>%
+  group_by(species) %>%
+  summarise(avg_mass = mean(body_mass_g, na.rm = TRUE), .groups = "drop")
+
+penguins %>%
+  left_join(avg_mass, by = "species") %>%
+  mutate(mass_minus_avg = body_mass_g - avg_mass) %>%
+  select(species, body_mass_g, avg_mass, mass_minus_avg) %>%
+  slice_head(n = 6)
+```
+
+# Slice helpers (slice_head, slice_max)
+
+```{r}
+penguins %>% slice_head(n = 5)
+penguins %>% slice_max(body_mass_g, n = 5, with_ties = FALSE) %>% select(species, body_mass_g)
+```
+
+# ggplot: scatter + linear fit
+
+```{r}
+penguins %>%
+  ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +
+  geom_point(na.rm = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, na.rm = TRUE) +
+  labs(x = "Bill length (mm)", y = "Body mass (g)", title = "Penguins: mass vs bill length")
+```
+
+# ggplot: boxplot + facets
+
+```{r}
+penguins %>%
+  ggplot(aes(x = species, y = body_mass_g)) +
+  geom_boxplot(na.rm = TRUE) +
+  facet_wrap(~ island) +
+  labs(x = "Species", y = "Body mass (g)", title = "Body mass by species across islands")
+```
+
+# purrr map: fit one model per species (nest + map)
+
+```{r}
+library(broom)
+
+penguins %>%
+  drop_na(bill_length_mm, body_mass_g) %>%
+  group_by(species) %>%
+  nest() %>%
+  mutate(
+    fit = map(data, ~ lm(body_mass_g ~ bill_length_mm, data = .x)),
+    tidy = map(fit, tidy)
+  ) %>%
+  select(species, tidy) %>%
+  unnest(tidy)
+```
+
+# stringr basics (make a label)
+
+```{r}
+penguins %>%
+  mutate(label = str_c(species, " on ", island)) %>%
+  count(label, sort = TRUE)
+```
+
+# forcats basics (reorder a factor by a summary)
+
+```{r}
+penguins %>%
+  drop_na(body_mass_g) %>%
+  mutate(species = fct_reorder(species, body_mass_g, .fun = median, na.rm = TRUE)) %>%
+  ggplot(aes(species, body_mass_g)) +
+  geom_boxplot() +
+  labs(title = "Species reordered by median body mass")
+```
+
+

@@ -109,13 +109,11 @@ elephants %>%
 elephants %>% 
   group_by(years_of_sample_collection) %>% 
   summarise(mean_tusk=mean(tusk_length_in_cm,na.rm=T),sd_tusk=sd(tusk_length_in_cm,na.rm=T))
-x <- elephants %>%
-  filter(years_of_sample_collection=="1966-68") %>% 
-  select(tusk_length_in_cm)
-y <- elephants %>%
-  filter(years_of_sample_collection=="2005-13") %>% 
-  select(tusk_length_in_cm)
-test_result <- t.test(x,y)
+```
+
+```{r}
+
+test_result <- t.test(tusk_length_in_cm ~ years_of_sample_collection, data = elephants)
 test_result$p.value
 ```
 

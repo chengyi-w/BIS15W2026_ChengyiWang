@@ -1,0 +1,176 @@
+---
+title: "Code Templates"
+output: html_document
+date: "2026-01-29"
+---
+
+
+# Complex filter logic (different rules by group)
+```{r}
+library(tidyverse)
+library(palmerpenguins)
+
+# Example: define "mature" differently for each sex
+penguins_mature <- penguins %>%
+  filter(
+    (sex == "male"   & body_mass_g >= 4500) |
+    (sex == "female" & body_mass_g >= 4000)
+  ) %>%
+  drop_na(sex, body_mass_g)
+
+penguins_mature %>% count(sex)
+```
+
+# Multi-stat grouped summaries with across (fast + flexible)
+
+```{r}
+penguins %>%
+  group_by(species, island) %>%
+  summarise(
+    n = n(),
+    across(
+      .cols = c(bill_length_mm, bill_depth_mm, flipper_length_mm, body_mass_g),
+      .fns  = list(
+        mean = ~ mean(.x, na.rm = TRUE),
+        sd   = ~ sd(.x, na.rm = TRUE),
+        min  = ~ min(.x, na.rm = TRUE),
+        max  = ~ max(.x, na.rm = TRUE)
+      ),
+      .names = "{.col}_{.fn}"
+    ),
+    .groups = "drop"
+  )
+```
+
+# Grouped mutate (within-group centering, z-score, and ranks)
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  mutate(
+    mass_centered = body_mass_g - mean(body_mass_g, na.rm = TRUE),
+    mass_z = (body_mass_g - mean(body_mass_g, na.rm = TRUE)) / sd(body_mass_g, na.rm = TRUE),
+    mass_rank = dense_rank(desc(body_mass_g))
+  ) %>%
+  ungroup() %>%
+  select(species, body_mass_g, mass_centered, mass_z, mass_rank) %>%
+  slice_head(n = 10)
+```
+
+# Join template: compute group summary, join back, compute deviation
+
+```{r}
+avg_mass <- penguins %>%
+  group_by(species) %>%
+  summarise(avg_mass = mean(body_mass_g, na.rm = TRUE), .groups = "drop")
+
+penguins %>%
+  left_join(avg_mass, by = "species") %>%
+  mutate(mass_minus_species_avg = body_mass_g - avg_mass) %>%
+  select(species, body_mass_g, avg_mass, mass_minus_species_avg) %>%
+  slice_head(n = 8)
+```
+
+# Pivot longer → summarize → pivot wider (classic “reshape then report”)
+
+```{r}
+penguins %>%
+  select(species, island, starts_with("bill"), body_mass_g) %>%
+  pivot_longer(
+    cols = c(bill_length_mm, bill_depth_mm),
+    names_to = "bill_measure",
+    values_to = "mm"
+  ) %>%
+  group_by(species, island, bill_measure) %>%
+  summarise(mean_mm = mean(mm, na.rm = TRUE), n = sum(!is.na(mm)), .groups = "drop") %>%
+  pivot_wider(names_from = bill_measure, values_from = mean_mm)
+```
+
+# Missing-data template: drop rows for modeling, fill within groups, replace NA safely
+
+```{r}
+# 1) Drop only what you need for an analysis
+model_df <- penguins %>% drop_na(bill_length_mm, body_mass_g, species)
+
+# 2) Fill a column down/up within groups (common with time/ordered data)
+filled <- penguins %>%
+  group_by(island) %>%
+  arrange(year) %>%
+  fill(sex, .direction = "downup") %>%
+  ungroup()
+
+# 3) Replace NA with a value (careful: changes meaning!)
+replaced <- penguins %>%
+  mutate(body_mass_g = replace_na(body_mass_g, 0))
+```
+
+# Model-per-group (nest + purrr::map + broom) — very reusable
+
+```{r}
+library(broom)
+
+penguins %>%
+  drop_na(bill_length_mm, body_mass_g, species) %>%
+  group_by(species) %>%
+  nest() %>%
+  mutate(
+    fit  = map(data, ~ lm(body_mass_g ~ bill_length_mm, data = .x)),
+    tidy = map(fit, tidy),
+    glance = map(fit, glance)
+  ) %>%
+  select(species, tidy) %>%
+  unnest(tidy)
+```
+
+# Inference template: t-test with clean output + effect direction
+
+```{r}
+# Compare body mass between two groups (example: Adelie vs Chinstrap)
+two_species <- penguins %>%
+  filter(species %in% c("Adelie", "Chinstrap")) %>%
+  drop_na(body_mass_g)
+
+res <- t.test(body_mass_g ~ species, data = two_species)
+
+res$p.value
+res$estimate     # group means (named)
+res$conf.int     # CI for difference in means
+```
+
+# ggplot “full template”: points + lm line + facets + clean labels
+
+```{r}
+penguins %>%
+  ggplot(aes(x = bill_length_mm, y = body_mass_g)) +
+  geom_point(aes(shape = sex), na.rm = TRUE) +
+  geom_smooth(method = "lm", se = TRUE, na.rm = TRUE) +
+  facet_wrap(~ species) +
+  labs(
+    title = "Body mass vs bill length (by species)",
+    x = "Bill length (mm)",
+    y = "Body mass (g)"
+  )
+```
+
+# Summarize-then-plot with error bars (mean + SE by group)
+
+```{r}
+summary_df <- penguins %>%
+  group_by(species) %>%
+  summarise(
+    n = sum(!is.na(body_mass_g)),
+    mean_mass = mean(body_mass_g, na.rm = TRUE),
+    se_mass = sd(body_mass_g, na.rm = TRUE) / sqrt(n),
+    .groups = "drop"
+  )
+
+summary_df %>%
+  ggplot(aes(x = species, y = mean_mass)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean_mass - se_mass, ymax = mean_mass + se_mass), width = 0.2) +
+  labs(x = "Species", y = "Mean body mass (g)", title = "Mean +- SE body mass by species")
+```
+
+```
+::contentReference[oaicite:0]{index=0}
+```
