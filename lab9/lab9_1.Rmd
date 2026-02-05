@@ -72,20 +72,29 @@ Let's think about this another way- can we make a plot that shows the effect of 
   
 To fix this problem, we need to reshape the table to long format while keeping track of column names and values. We do this using `pivot_longer()`. Notice that the dimensions of the data frame change.  
 ```{r}
+heartrate_long <- heartrate %>% 
+  pivot_longer(-patient,names_to="drug",values_to = "heartrate")
+```
 
+```{r}
+heartrate_long %>% 
+  filter(patient=="Margaret")
 ```
 
 ## Practice
 1. Import the file `relig_income.csv` and store it as a new object `relig_income`.  
 ```{r}
-
+relig_income <- read_csv("data/relig_income.csv")
 ```
 
 2. Why are these data untidy?  
 
+The columns are all just range of income, which are should be one variable, income.
+
 3. Use `pivot_longer()` to make the data tidy.  
 ```{r}
-
+relig_income %>% 
+  pivot_longer(-religion,names_to = "income",values_to = "n")
 ```
 
 ## Example 2: some column names are data
@@ -97,30 +106,40 @@ billboard
 
 Solution 1: specify a range of columns that you want to pivot.
 ```{r}
-
+billboard %>% 
+  pivot_longer(wk1:wk76,names_to = "week",values_to = "rank", values_drop_na = T)
 ```
 
 Solution 2: OR, specify columns that you want to stay fixed.
 ```{r}
-
+billboard %>% 
+  pivot_longer(-c(artist,track,date.entered),names_to = "week",values_to = "rank", values_drop_na = T)
 ```
 
 Solution 3: identify columns by a prefix, remove the prefix and all NA's.
 ```{r}
-
+billboard %>% 
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    names_prefix = "wk",
+    values_to = "rank",
+    values_drop_na = T
+  )
 ```
 
 ## Practice  
 1. Import `plant_data.csv` as a new object `plant_data`.  
 ```{r}
-
+plant_data = read_csv("data/plant_data.csv")
 ```
 
 2. Why are these data not tidy?  
 
 3. Use `pivot_longer()` to make the data tidy. Focus the data only on genotype, water_sched_prog, and greenhouse.  
 ```{r}
-
+plant_data %>% 
+  pivot_longer(cols = starts_with("day"),names_to = "day")
 ```
 
 ## Example 3: more than one variable in a column name
@@ -132,12 +151,20 @@ qpcr_untidy
 
 `names_sep` helps pull these apart, but we still have "exp" and "rep" to deal with.  
 ```{r}
-
+qpcr_tidy <- qpcr_untidy %>% 
+  pivot_longer(
+    exp1_rep1:exp3_rep3, 
+    names_to = c("experiment","rep"),
+    names_sep = "_",
+    values_to = "expression"
+  )
 ```
 
 
 ```{r}
-
+qpcr_tidy %>% 
+  separate(experiment,into=c("experiment","e_number"),sep=3) %>% 
+  separate(rep, into=c("rep","r_number"),sep=3)
 ```
 
 ## That's it! Let's move on to part 2! 
