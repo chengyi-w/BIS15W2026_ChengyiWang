@@ -45,10 +45,33 @@ amniota %>%
 ```
 
 4. Double check your replacement using `summary`. Do you see any other potential issues? If so, fix them.
+```{r}
+summary(amniota)
+```
+
+There are -30258.7 in female_maturity_d, which make no sense. 
+```{r}
+amniota <- amniota %>% 
+  mutate(female_maturity_d=na_if(female_maturity_d,-30258.71100))
+```
 
 5. Use `naniar` to visualize the number of NA's in each variable. Which variables have the most NA's?
+```{r}
+amniota %>% 
+  gg_miss_var()
+```
+
+subspecies has the most N/A, and it only have N/A and no other value.
+
 
 6. Calculate the number of NAs in the `egg_mass_g` column sorted by taxonomic class; i.e. how many NA's are present in the `egg_mass_g` column in birds, mammals, and reptiles? Does this results make sense biologically? How do these results affect your interpretation of NA's?
+```{r}
+amniota %>% 
+  select(egg_mass_g,class) %>% 
+  group_by(class) %>% 
+  miss_var_summary()
+```
+It make sense biologically that mammal have 100% NA, because mammal do not lay eggs. 
 
 ## Knit and Upload
 Please knit your work as an .html file and upload to Canvas. Homework is due before the start of the next lab. No late work is accepted. Make sure to use the formatting conventions of RMarkdown to make your report neat and clean! 
